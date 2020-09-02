@@ -14,6 +14,8 @@ def parse_file(filename):
         for line in f:
             if line.startswith("val:"): 
                 datum = {"value": line[4:].strip()}
+            if line.startswith("owf:"):
+                datum["could_overflow"] = bool(int(line[4:].strip()))
             elif line.startswith("chi:") or line.startswith("par:"): 
                 #remove leading "par:" and trailing "=+=" 
                 #split by "=+="
@@ -66,13 +68,16 @@ for k,v in numerical_labels.items():
     print(v,k)
     print(next(x["children"] for x in all_data if x["value"] == k))
     if " = call" in k:
+        color_map.append("purple")
+    elif next(x for x in all_data if x["value"] == k)["could_overflow"] == True:
         color_map.append("red")
     else:
         color_map.append("cyan")
 
 # good layouts: circular, kamada_kawai
-nx.draw(G, labels=numerical_labels, node_color=color_map, with_labels=True)
-#nx.draw(G)
+nx.draw_circular(G, labels=numerical_labels, node_color=color_map, with_labels=True)
 plt.show()
+
+
 #A = nx.nx_agraph.to_agraph(G)
 #write_dot(G, "graph.dot")
