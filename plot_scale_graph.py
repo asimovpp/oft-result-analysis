@@ -31,10 +31,10 @@ def parse_file(filename):
                     datum["parents"] = node_names
                     data.append(datum)
 
-                print(line)
-                print(contents)
-                for c in node_names:
-                    print(c)
+                #print(line)
+                #print(contents)
+                #for c in node_names:
+                #    print(c)
 
     
 
@@ -64,18 +64,27 @@ for d in all_data:
 
 numerical_labels = {x:i for i,x in enumerate([y["value"] for y in all_data])}
 color_map = []
-for k,v in numerical_labels.items():
+for k,v in sorted(numerical_labels.items(), key=lambda x: x[1]):
     print(v,k)
-    print(next(x["children"] for x in all_data if x["value"] == k))
+    print("    ", next(x["children"] for x in all_data if x["value"] == k))
+
+#need to add colors using G.nodes because the colors need to be in the same order as the nodes that will be drawn
+for k in G.nodes:
     if " = call" in k:
+        print("adding purple to node", numerical_labels[k], ":", k)
         color_map.append("purple")
     elif next(x for x in all_data if x["value"] == k)["could_overflow"] == True:
         color_map.append("red")
+    elif len(next(x for x in all_data if x["value"] == k)["parents"]) == 0:
+        color_map.append("yellow")
     else:
         color_map.append("cyan")
 
+print(len(numerical_labels), len(color_map))
+
 # good layouts: circular, kamada_kawai
-nx.draw_circular(G, labels=numerical_labels, node_color=color_map, with_labels=True)
+#nx.draw_kamada_kawai(G, labels=numerical_labels, node_color=color_map, with_labels=True)
+nx.draw(G, labels=numerical_labels, node_color=color_map, with_labels=True)
 plt.show()
 
 
