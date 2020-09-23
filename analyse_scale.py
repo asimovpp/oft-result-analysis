@@ -87,4 +87,7 @@ df3 = df3.merge(slopes, on="value_id", how="left")
 
 df3["slope_classification"] = df3.apply(classify_trend, axis=1)
 
-(ggplot(df3) + aes(x="world_size", y="value", color="factor(value_id)") + geom_line() + geom_point() + facet_wrap("slope_classification")).save("data_summary.pdf")
+(ggplot(df3) + aes(x="world_size", y="value", color="factor(value_id)") + geom_line() + geom_point() + scale_y_log10() + facet_wrap("slope_classification")).save("data_summary.pdf")
+
+df3.to_csv("data_summary.csv")
+
