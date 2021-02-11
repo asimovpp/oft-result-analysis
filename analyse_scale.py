@@ -1,26 +1,13 @@
-import sys, os, json
+import sys
 import pandas as pd
 from plotnine import *
 import scaling_dynamic_analysis as sda
 
 
 if __name__ == "__main__":
-    all_data = []
-    #for filename in sys.argv[1:]:
-    #    all_data = all_data + parse_file(filename)
+    #all_data = sda.read_data_from_files(sys.argv[1:])
+    all_data = sda.read_data_from_json(sys.argv[1])
 
-    dirname=os.path.dirname(sys.argv[1])
-    print(dirname)
-    with open(sys.argv[1]) as f:
-        inputs = json.load(f)["inputs"]
-
-    for ip in inputs:
-        scale = ip["scale"]
-        filename = ip["oft_output_filename"]
-        data = sda.parse_file(dirname + "/" + filename)
-        for d in data:
-            d["scale"] = scale
-        all_data = all_data + data 
 
     df = pd.DataFrame(all_data)
     df2 = df[df.value != -1]
