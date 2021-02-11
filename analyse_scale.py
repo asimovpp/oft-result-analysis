@@ -21,7 +21,7 @@ if __name__ == "__main__":
     #df3["group"] = df3.apply(func=lambda x: x["value_id"] // 5, axis=1)
     #(ggplot(df3) + aes(x="world_size", y="value", color="factor(value_id)") + geom_line() + geom_point() + facet_wrap("group"))
 
-    slopes = df3.groupby(["value_id"]).apply(sda.calc_trend).reset_index()
+    slopes = df3.groupby(["value_id"]).apply(sda.calc_poly_trend).reset_index()
     #slopes = df3.groupby(["value_id"]).apply(func=lambda x: pd.Series(np.polyfit(x.world_size, x.value, deg=1)[0], index=["trend_slope"])).reset_index()
     df3 = df3.merge(slopes, on="value_id", how="left")
 

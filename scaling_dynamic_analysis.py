@@ -68,7 +68,7 @@ def almost_zero(group):
     return group["trend_slope"]
 
 
-def calc_trend(group):
+def calc_poly_trend(group):
     fitted = np.polyfit(group.world_size, group.value, deg=2)
     print(fitted)
     slope = fitted[0]
@@ -79,7 +79,7 @@ def calc_trend(group):
 
 
 #WIP
-def calc_ridge(group):
+def calc_ridge_trend(group):
     clf = Ridge(alpha=1.0)
     clf.fit(X, y)
 
