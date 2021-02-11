@@ -11,13 +11,11 @@ def _parse_line(line, rx_dict):
         match = rx.search(line)
         if match:
             return key, match
-
     return None, None
 
 
 def parse_file(filename):
     data = []
-
     with open(filename, "r") as f:
         for line in f:
             #print(line)
@@ -28,20 +26,8 @@ def parse_file(filename):
                 val = int(m.group(3))
                 datum = {"rank": rank, "value_id": val_id, "value": val, "filename": filename}
                 data.append(datum)
-    
-    world_size = max([datum["rank"] for datum in data]) + 1
-    for datum in data:
-        datum["world_size"] = world_size
-
     return data
 
-
-def read_data_from_files(filenames):
-    all_data = []
-    for filename in filenames:
-        all_data = all_data + parse_file(filename)
-    return all_data
-    
 
 def read_data_from_json(json_filename):
     all_data = []
@@ -51,7 +37,7 @@ def read_data_from_json(json_filename):
 
     for ip in inputs:
         scale = ip["scale"]
-        filename = ip["oft_output_filename"]
+        filename = ip["file"]
         data = parse_file(dirname + "/" + filename)
         for d in data:
             d["scale"] = scale
@@ -59,47 +45,43 @@ def read_data_from_json(json_filename):
     return all_data
 
 
-def almost_zero(group):
-    tolerance = 1e-10
-    if (group["trend_slope"].abs() < tolerance).any():
-        if (group["value"] == group["value"][0]).all(): 
-            group["trend_slope"] = 0
-    
-    return group["trend_slope"]
+def read_metadata_from_json(json_filename):
+    with open(json_filename) as f:
+        scale_name = json.load(f)["scale_name"]
+    return scale_name
 
 
 def calc_poly_trend(group):
-    fitted = np.polyfit(group.world_size, group.value, deg=2)
-    print(fitted)
+    fitted = np.polyfit(group.scale, group.value, deg=1)
+    #print(fitted)
     slope = fitted[0]
-    tolerance = 1e-10
-    if np.abs(slope) < tolerance:
-        slope = 0.0
-    return pd.Series(slope, index=["trend_slope"])
-
-
-#WIP
-def calc_ridge_trend(group):
-    clf = Ridge(alpha=1.0)
-    clf.fit(X, y)
-
-    fitted = np.polyfit(group.world_size, group.value, deg=2)
-    print(fitted)
-    slope = fitted[0]
-    tolerance = 1e-10
-    if np.abs(slope) < tolerance:
-        slope = 0.0
     return pd.Series(slope, index=["trend_slope"])
 
 
 def classify_trend(row):
     slope_column_name = "trend_slope"
-    if(row[slope_column_name] == 0.0):
+    slope = row[slope_column_name]
+    tolerance = 1e-10
+    if(np.abs(slope) < tolerance): # treat very small slopes as flat
         return "flat"
-    elif(row[slope_column_name] > 0.0):
+    elif(slope > 0.0):
         return "positive"
-    if(row[slope_column_name] < 0.0):
+    if(slope < 0.0):
         return "negative"
+
+
+#WIP
+def calc_ridge_trend(group):
+    clf = Ridge(alpha=1.0)
+    clf.fit(group.world_size, group.value)
+
+    fitted = np.polyfit(group.world_size, group.value, deg=2)
+    print(fitted)
+    slope = fitted[0]
+    tolerance = 1e-10
+    if np.abs(slope) < tolerance:
+        slope = 0.0
+    return pd.Series(slope, index=["trend_slope"])
 
 
 

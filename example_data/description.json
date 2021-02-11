@@ -1,0 +1,12 @@
+{
+"inputs": 
+    [
+        {"scale":   4, "file": "out4.txt"},
+        {"scale":   8, "file": "out8.txt"},
+        {"scale":  16, "file": "out16.txt"},
+        {"scale":  32, "file": "out32.txt"},
+        {"scale":  64, "file": "out64.txt"},
+        {"scale": 128, "file": "out128.txt"}
+    ],
+"scale_name": "MPI world size"
+}
