@@ -73,14 +73,10 @@ def classify_trend(row):
 #WIP
 def calc_ridge_trend(group):
     clf = Ridge(alpha=1.0)
-    clf.fit(group.world_size, group.value)
+    clf.fit(group.scale.to_numpy().reshape(-1, 1), group.value)
 
-    fitted = np.polyfit(group.world_size, group.value, deg=2)
-    print(fitted)
-    slope = fitted[0]
-    tolerance = 1e-10
-    if np.abs(slope) < tolerance:
-        slope = 0.0
+    print(clf.coef_)
+    slope = clf.coef_[0]
     return pd.Series(slope, index=["trend_slope"])
 
 
