@@ -1,2 +1,7 @@
 test_data/
 *.ll
+*.pdf
+*.csv
+*.swp
+.DS_store
+__pycache__
