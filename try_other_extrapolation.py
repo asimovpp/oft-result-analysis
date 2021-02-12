@@ -5,6 +5,7 @@ import scaling_dynamic_analysis as sda
 
 
 if __name__ == "__main__":
+    scale_name, max_scale = sda.read_metadata_from_json(sys.argv[1])
     all_data = sda.read_data_from_json(sys.argv[1])
     df = pd.DataFrame(all_data)
 
@@ -21,7 +22,36 @@ if __name__ == "__main__":
 
     # final plot of scale instructions vs scale; grouped by slope trend
     # useful options: scale_y_log10(); geom_hline(yintercept = (2**31 - 1))
-    (ggplot(df3) + aes(x="scale", y="value", color="factor(value_id)") + theme(legend_position='none') + geom_line() + geom_point() + scale_y_log10() + facet_wrap("slope_classification")).save("ridge_data_summary.pdf")
+    (ggplot(df3) + 
+     aes(x="scale", y="value", group="value_id", color="factor(value_id)") + 
+     theme(legend_position='none') + 
+     geom_line() + 
+     geom_point() + 
+     facet_wrap("slope_classification")
+    ).save("ridge_data_summary.pdf")
 
     # dump dataframe to csv
     df3.to_csv("ridge_data_summary.csv")
+    
+    
+    print("\nExtrapolating now\n")
+
+    # grab ridge models and plot extrapolated data
+    extr = df3.groupby(["value_id"]).apply(sda.get_ridge_model).reset_index()
+    extr["min_scale"] = 0
+    extr["max_scale"] = max_scale
+
+    extr["projected_scale"] = extr.apply(sda.get_linspace, axis=1)
+    extr = extr.explode("projected_scale")
+   
+    extr["projected_value"] = extr.apply(sda.get_ridge_extrapolation, axis=1)
+    # needs to be cast to a number for plotting; can't do earlier otherwise "reshape" complains
+    extr["projected_scale"] = extr["projected_scale"].apply(pd.to_numeric)
+    
+    (ggplot(extr) + 
+     aes(x="projected_scale", y="projected_value", group="value_id", color="factor(value_id)") + 
+     theme(legend_position='none') + 
+     geom_line() + 
+     geom_point() +
+     geom_hline(yintercept = (2**31 - 1))
+    ).save("ridge_extrapolation.pdf")

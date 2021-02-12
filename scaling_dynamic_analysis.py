@@ -47,8 +47,11 @@ def read_data_from_json(json_filename):
 
 def read_metadata_from_json(json_filename):
     with open(json_filename) as f:
-        scale_name = json.load(f)["scale_name"]
-    return scale_name
+        contents = json.load(f)
+        scale_name = contents["scale_name"] if "scale_name" in contents else "scale"
+        max_scale  = contents["max_scale"] if "max_scale" in contents else -1
+
+    return scale_name, max_scale
 
 
 def calc_poly_trend(group):
@@ -74,10 +77,27 @@ def classify_trend(row):
 def calc_ridge_trend(group):
     clf = Ridge(alpha=1.0)
     clf.fit(group.scale.to_numpy().reshape(-1, 1), group.value)
-
-    print(clf.coef_)
     slope = clf.coef_[0]
     return pd.Series(slope, index=["trend_slope"])
 
 
+#WIP
+def get_ridge_model(group):
+    clf = Ridge(alpha=1.0)
+    clf.fit(group.scale.to_numpy().reshape(-1, 1), group.value)
+    #return clf
+    return pd.Series(clf, index=["ridge_model"])
 
+
+def get_linspace(row):
+    return np.linspace(start=row.min_scale, stop=row.max_scale, num=50, dtype="int")
+
+def get_ridge_extrapolation(row):
+    #X = np.linspace(start=row.min_scale, stop=row.max_scale, num=100).reshape(-1,1)
+    X = row.projected_scale.reshape(-1,1)
+    return row.ridge_model.predict(X)[0]
+## user defines max scale
+## we fit ridge or svr to the data
+## then we take a space (linear or exponential) between largest measured scale and max scale
+## then use the fitted model to predict values for each intermediate point
+## plot the extrapolation! Or print the last one that doesn't overflow and the first one that does.

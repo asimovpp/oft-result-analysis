@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     # final plot of scale instructions vs scale; grouped by slope trend
     # useful options: scale_y_log10(); geom_hline(yintercept = (2**31 - 1))
-    (ggplot(df3) + aes(x="scale", y="value", color="factor(value_id)") + theme(legend_position='none') + geom_line() + geom_point() + scale_y_log10() + facet_wrap("slope_classification")).save("data_summary.pdf")
+    (ggplot(df3) + aes(x="scale", y="value", color="factor(value_id)") + theme(legend_position='none') + geom_line() + scale_y_log10() + geom_point() + facet_wrap("slope_classification")).save("data_summary.pdf")
 
     # dump dataframe to csv
     df3.to_csv("data_summary.csv")

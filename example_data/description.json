@@ -8,5 +8,6 @@
         {"scale":  64, "file": "out64.txt"},
         {"scale": 128, "file": "out128.txt"}
     ],
-"scale_name": "MPI world size"
+"scale_name": "MPI world size",
+"max_scale": 748544
 }
