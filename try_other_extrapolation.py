@@ -5,7 +5,10 @@ import scaling_dynamic_analysis as sda
 
 
 if __name__ == "__main__":
-    scale_name, max_scale = sda.read_metadata_from_json(sys.argv[1])
+    scale_name, max_scale, instrumentation_file = sda.read_metadata_from_json(sys.argv[1])
+    if instrumentation_file != "":
+        value_id_info = sda.parse_value_ids(instrumentation_file)
+
     all_data = sda.read_data_from_json(sys.argv[1])
     df = pd.DataFrame(all_data)
 
@@ -37,7 +40,8 @@ if __name__ == "__main__":
     print("\nExtrapolating now\n")
 
     # grab ridge models and plot extrapolated data
-    extr = df3.groupby(["value_id"]).apply(sda.get_ridge_model).reset_index()
+    #extr = df3.groupby(["value_id"]).apply(sda.get_ridge_model).reset_index()
+    extr = df3.groupby(["value_id"]).apply(sda.get_svr_model).reset_index()
     extr["min_scale"] = 0
     extr["max_scale"] = max_scale
 
@@ -52,6 +56,6 @@ if __name__ == "__main__":
      aes(x="projected_scale", y="projected_value", group="value_id", color="factor(value_id)") + 
      theme(legend_position='none') + 
      geom_line() + 
-     geom_point() +
-     geom_hline(yintercept = (2**31 - 1))
+     geom_point()
     ).save("ridge_extrapolation.pdf")
+     #geom_hline(yintercept = (2**31 - 1))
