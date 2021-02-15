@@ -127,3 +127,37 @@ def get_ridge_extrapolation(row):
     #X = np.linspace(start=row.min_scale, stop=row.max_scale, num=100).reshape(-1,1)
     X = row.projected_scale.reshape(-1,1)
     return row.ridge_model.predict(X)[0]
+
+
+def compare_instrumentation_info(filename1, filename2):
+    info1 = parse_value_ids(filename1)
+    info2 = parse_value_ids(filename2)
+    df1 = pd.DataFrame(info1) 
+    df2 = pd.DataFrame(info2) 
+
+    if len(df1) != len(df2):
+        print("Inputs have a different number of instrumented instructions")
+        return 1
+
+    print(df1.compare(df2))
+
+    #return df1, df2
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
