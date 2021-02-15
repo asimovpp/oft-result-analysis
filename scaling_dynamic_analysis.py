@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import RobustScaler
 from sklearn.multioutput import MultiOutputRegressor
 
+from numpy.polynomial import Polynomial
 
 def _parse_line(line, rx_dict):
     for key, rx in rx_dict.items():
@@ -142,13 +143,44 @@ def compare_instrumentation_info(filename1, filename2):
     print(df1.compare(df2))
 
     #return df1, df2
-        
+    
 
+def check_fit(model, xs, observed):
+    ys = [model(x) for x in xs]
+    num = np.sqrt( sum([(y-o)**2 for y,o in zip(ys,observed)])  / len(ys))
+    return num
+    #denum = max(ys) - min(ys)
+    # if num is 0, it's a perfect fit.
+    # In that case, denum might be 0 if the model is a constant
+    # so just return a perfect fit score
+    #if num == 0:
+    #    return 1
+    # but for a degree 0 poly, denum is still 0 but num can be nonzero...
+    #return 1 - num/denum
 
+#WIP
+# find best polynomial fit to points
+# could ask the user to specify max degree
+# Possible limitation: decaying functions will go negative in extrapolation
+def get_best_poly_fit(group):
+    max_degree = 3
+    fitted = Polynomial.fit(group.scale, group.value, deg=max_degree)
+    score = check_fit(fitted, group.scale, group.value)
+    min_score = score 
+    best_fitted = fitted
+    for degree in reversed(range(0, max_degree)):
+        fitted = Polynomial.fit(group.scale, group.value, deg=degree)
+        score = check_fit(fitted, group.scale, group.value)
+        if score <= min_score:
+            min_score = score
+            best_fitted = fitted
+        #print(score, fitted, list(group.scale), list(group.value))
+        #print(score, fitted)
 
+    return pd.Series([best_fitted], index=["poly_model"])
 
-
-
+def get_poly_extrapolation(row):
+    return row.poly_model(row.projected_scale)
 
 
 
