@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 from plotnine import *
 import scaling_dynamic_analysis as sda
+from mizani.formatters import scientific_format
 
 
 if __name__ == "__main__":
@@ -30,7 +31,8 @@ if __name__ == "__main__":
      theme(legend_position='none') + 
      geom_line() + 
      geom_point() + 
-     facet_wrap("slope_classification")
+     facet_wrap("slope_classification") +
+     scale_y_continuous(labels=scientific_format(digits=2))
     ).save("ridge_data_summary.pdf")
 
     # dump dataframe to csv
@@ -41,7 +43,8 @@ if __name__ == "__main__":
 
     # grab ridge models and plot extrapolated data
     #extr = df3.groupby(["value_id"]).apply(sda.get_ridge_model).reset_index()
-    extr = df3.groupby(["value_id"]).apply(sda.get_svr_model).reset_index()
+    extr = df3.groupby(["value_id"]).apply(sda.get_ridge_model).reset_index()
+    extr = extr.merge(df3[["value_id", "slope_classification"]], on="value_id", how="left")
     extr["min_scale"] = 0
     extr["max_scale"] = max_scale
 
@@ -56,6 +59,8 @@ if __name__ == "__main__":
      aes(x="projected_scale", y="projected_value", group="value_id", color="factor(value_id)") + 
      theme(legend_position='none') + 
      geom_line() + 
-     geom_point()
+     facet_wrap("slope_classification") +
+     scale_y_continuous(labels=scientific_format(digits=2))
     ).save("ridge_extrapolation.pdf")
      #geom_hline(yintercept = (2**31 - 1))
+

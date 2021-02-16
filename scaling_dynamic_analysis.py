@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 
 from sklearn.linear_model import Ridge
+from sklearn.kernel_ridge import KernelRidge
 
 from sklearn.svm import SVR
 from sklearn.pipeline import make_pipeline
@@ -11,6 +12,8 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.multioutput import MultiOutputRegressor
 
 from numpy.polynomial import Polynomial
+
+from scipy.optimize import curve_fit
 
 def _parse_line(line, rx_dict):
     for key, rx in rx_dict.items():
@@ -108,15 +111,21 @@ def calc_ridge_trend(group):
 
 #WIP
 def get_ridge_model(group):
-    clf = Ridge(alpha=1.0)
+    #clf = Ridge(alpha=1.0)
+    clf = KernelRidge(alpha=1.0, kernel="rbf", gamma=1e-3)
     clf.fit(group.scale.to_numpy().reshape(-1, 1), group.value)
     #return clf
     return pd.Series(clf, index=["ridge_model"])
 
 
 def get_svr_model(group):
-    regr = make_pipeline(RobustScaler(), SVR(kernel="rbf", tol=1e-5, C=1000, degree=2, epsilon=1e-8))
-    regr.fit(group.scale.to_numpy().reshape(-1, 1), group.value)
+    #regr = make_pipeline(StandardScaler(), SVR(kernel="rbf", C=1000, epsilon=10, gamma=10000))
+    regr = make_pipeline(StandardScaler(), SVR(kernel="rbf", C=1e11, gamma=1e0))
+    svr = regr.fit(group.scale.to_numpy().reshape(-1, 1), group.value)
+    #scaler = StandardScaler()
+    #scaler.fit(group.scale.to_numpy().reshape(-1, 1))
+    #print(group.value)
+    #print(scaler.transform(group.value.to_numpy().reshape(-1, 1)))
     # have to wrap the model in [] because it is a pipleine and DataFrame thinks it's being given 2 things
     return pd.Series([regr], index=["ridge_model"])
 
@@ -183,10 +192,40 @@ def get_poly_extrapolation(row):
     return row.poly_model(row.projected_scale)
 
 
+models = [
+        lambda x, a, b    : a * x + b ,
+        lambda x, a, b, c : a * x**2 + b * x + c ,
+        lambda x, a, b, c : a * x**b + c 
+         ]
+        #lambda x, a, b : b * np.log(x) + np.log(a)
 
 
+def get_best_func_fit(group):
+    min_score = None
+    best_fitted = None
+    print()
+    print(list(group.scale))
+    print(list(group.value))
+    for i, model in enumerate(models):
+        try:
+            coefs, _ = curve_fit(model, group.scale, group.value)
+        except RuntimeError:
+            continue 
+        fitted = lambda x : models[i](x, *coefs)
+        score = check_fit(fitted, group.scale, group.value)
+        if min_score == None:
+            min_score = score
+            best_fitted = fitted
+        elif score <= min_score:
+            min_score = score
+            best_fitted = fitted
+        #print(score, fitted, list(group.scale), list(group.value))
+        print(i, score, coefs)
 
+    return pd.Series([fitted], index=["func_model"])
 
+def get_func_extrapolation(row):
+    return row.func_model(row.projected_scale)
 
 
 

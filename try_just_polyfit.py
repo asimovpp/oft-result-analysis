@@ -41,15 +41,16 @@ if __name__ == "__main__":
 
     # grab ridge models and plot extrapolated data
     #extr = df3.groupby(["value_id"]).apply(sda.get_ridge_model).reset_index()
-    extr = df3.groupby(["value_id"]).apply(sda.get_best_poly_fit).reset_index()
+    #extr = df3.groupby(["value_id"]).apply(sda.get_best_poly_fit).reset_index()
+    extr = df3.groupby(["value_id"]).apply(sda.get_best_func_fit).reset_index()
     extr = extr.merge(df3[["value_id", "slope_classification"]], on="value_id", how="left")
-    extr["min_scale"] = 0
+    extr["min_scale"] = 1
     extr["max_scale"] = max_scale
 
     extr["projected_scale"] = extr.apply(sda.get_linspace, axis=1)
     extr = extr.explode("projected_scale")
     
-    extr["projected_value"] = extr.apply(sda.get_poly_extrapolation, axis=1)
+    extr["projected_value"] = extr.apply(sda.get_func_extrapolation, axis=1)
     # needs to be cast to a number for plotting; can't do earlier otherwise "reshape" complains
     extr["projected_scale"] = extr["projected_scale"].apply(pd.to_numeric)
     
