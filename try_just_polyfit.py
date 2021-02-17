@@ -42,7 +42,11 @@ if __name__ == "__main__":
     # grab ridge models and plot extrapolated data
     #extr = df3.groupby(["value_id"]).apply(sda.get_ridge_model).reset_index()
     #extr = df3.groupby(["value_id"]).apply(sda.get_best_poly_fit).reset_index()
-    extr = df3.groupby(["value_id"]).apply(sda.get_best_func_fit).reset_index()
+
+    # only extrapolate curves with a positive slope on average.
+    # fitting falling functions is not working very well currently
+    extr = df3[df3.slope_classification == "positive"]
+    extr = extr.groupby(["value_id"]).apply(sda.get_best_func_fit).reset_index()
     extr = extr.merge(df3[["value_id", "slope_classification"]], on="value_id", how="left")
     extr["min_scale"] = 1
     extr["max_scale"] = max_scale
@@ -54,11 +58,11 @@ if __name__ == "__main__":
     # needs to be cast to a number for plotting; can't do earlier otherwise "reshape" complains
     extr["projected_scale"] = extr["projected_scale"].apply(pd.to_numeric)
     
-    (ggplot(extr) + 
-     aes(x="projected_scale", y="projected_value", group="value_id", color="factor(value_id)") + 
+    (ggplot() + 
+     geom_line(aes(x="projected_scale", y="projected_value", 
+               group="value_id", color="factor(value_id)"), data=extr) + 
+     geom_point(aes(x="scale", y="value", group="value_id", color="factor(value_id)"), data=df3) + 
      theme(legend_position='none') + 
-     geom_line() + 
-     geom_point() +
      facet_wrap("slope_classification")
     ).save("ridge_extrapolation.pdf")
      #geom_hline(yintercept = (2**31 - 1))

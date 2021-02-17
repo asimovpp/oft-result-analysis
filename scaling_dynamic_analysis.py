@@ -15,6 +15,8 @@ from numpy.polynomial import Polynomial
 
 from scipy.optimize import curve_fit
 
+from functools import partial
+
 def _parse_line(line, rx_dict):
     for key, rx in rx_dict.items():
         match = rx.search(line)
@@ -193,12 +195,26 @@ def get_poly_extrapolation(row):
 
 
 models = [
-        lambda x, a, b    : a * x + b ,
-        lambda x, a, b, c : a * x**2 + b * x + c ,
-        lambda x, a, b, c : a * x**b + c 
+        lambda x, a, b    : a * x + b,
+        lambda x, a, b, c : a * x**b + c,
+        lambda x, a, b, c : a / x**b + c
          ]
+        #lambda x, a, b, c : a * x**2 + b * x + c
         #lambda x, a, b : b * np.log(x) + np.log(a)
+        #{ lambda x, a, b    : a * x**(1/2) + b, 
+        #{ lambda x, a, b    : a / x**(2) + b,
+        #{ lambda x, a, b    : a / x + b, 
 
+# modify partial from functools ( https://docs.python.org/3/library/functools.html ).
+# puts the passed args at the end, not the beginning
+def my_partial(func, *args, **keywords):
+    def newfunc(*fargs, **fkeywords):
+        newkeywords = {**keywords, **fkeywords}
+        return func(*fargs, *args, **newkeywords)
+    newfunc.func = func
+    newfunc.args = args
+    newfunc.keywords = keywords
+    return newfunc
 
 def get_best_func_fit(group):
     min_score = None
@@ -206,23 +222,26 @@ def get_best_func_fit(group):
     print()
     print(list(group.scale))
     print(list(group.value))
-    for i, model in enumerate(models):
+    for i,model in enumerate(models):
         try:
             coefs, _ = curve_fit(model, group.scale, group.value)
-        except RuntimeError:
+        except RuntimeError as err:
+            print(">>>caugt", err)
             continue 
-        fitted = lambda x : models[i](x, *coefs)
+        fitted = my_partial(model, *coefs)
         score = check_fit(fitted, group.scale, group.value)
-        if min_score == None:
-            min_score = score
-            best_fitted = fitted
-        elif score <= min_score:
+        # in cases where all group.value entries are equal, any of the models can be fit 
+        # by setting everything except the constant to near 0. To get around this: have the linear
+        # model first in the queue and look for strictly smaller scores in other models.
+        if min_score == None or score < min_score:
+            print("  found a better model", score, min_score)
             min_score = score
             best_fitted = fitted
         #print(score, fitted, list(group.scale), list(group.value))
-        print(i, score, coefs)
+        print(score, coefs)
+    
 
-    return pd.Series([fitted], index=["func_model"])
+    return pd.Series(best_fitted, index=["func_model"])
 
 def get_func_extrapolation(row):
     return row.func_model(row.projected_scale)
