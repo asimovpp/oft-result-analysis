@@ -1,2 +1,2 @@
 Usage:
-    python3 analyse_scale.py example_data/description.json
+    python3 analyse_and_extrapolate.py example_data/description.json
