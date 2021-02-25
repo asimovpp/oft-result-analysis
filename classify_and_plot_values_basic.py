@@ -17,7 +17,7 @@ if __name__ == "__main__":
     #(ggplot(df3) + aes(x="scale", y="value", color="factor(value_id)") + geom_line() + geom_point()).save("value_vs_scale.pdf")
 
     # fit a polynomial (of degree 1) to each unique value versus scale; return only the slope of the line
-    slopes = df3.groupby(["value_id"]).apply(sda.calc_poly_trend).reset_index()
+    slopes = df3.groupby(["value_id"]).apply(sda.calc_linear_fit_slope).reset_index()
     # add slopes to the dataset and group by trend
     df3 = df3.merge(slopes, on="value_id", how="left")
     df3["slope_classification"] = df3.apply(sda.classify_trend, axis=1)
