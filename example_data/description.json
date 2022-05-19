@@ -5,10 +5,9 @@
         {"scale":   8, "file": "out8.txt"},
         {"scale":  16, "file": "out16.txt"},
         {"scale":  32, "file": "out32.txt"},
-        {"scale":  64, "file": "out64.txt"},
-        {"scale": 128, "file": "out128.txt"}
+        {"scale":  64, "file": "out64.txt"}
     ],
 "scale_name": "MPI world size",
-"max_scale": 256,
-"instrumentation_file": "instrumentation.ll"
+"max_scale": 128,
+"instrumentation_file": "oft_instrumentation.txt"
 }
