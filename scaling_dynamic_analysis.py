@@ -176,6 +176,11 @@ def my_partial(func, *args, **keywords):
     newfunc.keywords = keywords
     return newfunc
 
+VERBOSE=False
+def myprint(*args):
+    if VERBOSE == True:
+        print(args)
+
 def get_best_func_model(group):
     models = [
             lambda x, a, b    : a * x + b,
@@ -190,14 +195,14 @@ def get_best_func_model(group):
     
     min_score = None
     best_fitted = None
-    print()
-    print(list(group.scale))
-    print(list(group.value))
+    myprint()
+    myprint(list(group.scale))
+    myprint(list(group.value))
     for i,model in enumerate(models):
         try:
             coefs, _ = curve_fit(model, group.scale, group.value)
         except RuntimeError as err:
-            print("   caught error: ", err)
+            myprint("   caught error: ", err)
             continue 
         fitted = my_partial(model, *coefs)
         score = check_fit(fitted, group.scale, group.value)
@@ -205,11 +210,11 @@ def get_best_func_model(group):
         # by setting everything except the constant to near 0. To get around this: have the linear
         # model first in the queue and look for strictly smaller scores in other models.
         if min_score == None or score < min_score:
-            print("  found a better model", score, min_score)
+            myprint("  found a better model", score, min_score)
             min_score = score
             best_fitted = fitted
         #print(score, fitted, list(group.scale), list(group.value))
-        print(score, coefs)
+        myprint(score, coefs)
     
 
     return pd.Series(best_fitted, index=["fitted_model"])
