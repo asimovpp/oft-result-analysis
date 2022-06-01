@@ -1,5 +1,5 @@
 # About
-This tool is intended to analyse the dynamic output from a series of small scale runs of applications instrumented using OFT: https://git.ecdf.ed.ac.uk/jzarins/llvm_hpc_static_analysis
+This tool is intended to analyse the dynamic output from a series of small scale runs of applications instrumented using OFT: https://github.com/asimovpp/oft 
 
 This involves running the instrumented application at a few small scales (e.g. using 4, 8, 16, 32 MPI ranks or a few small problem sizes). The results can be passed to the present tool to parse the output of OFT runs and classify the trends as "falling", "static" or "growing". 
 Furthermore, a polynomial trend line is fit to each value and extrapolated to predict the scale at which the value would overflow.
